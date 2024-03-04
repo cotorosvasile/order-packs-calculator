@@ -28,8 +28,9 @@ curl --location --request POST 'http://localhost:8080/calculator/calculate' \
 ```
 
 ## Features
+If you run this calculation without submitting any values in the Pack Sizes field, you will notice that it will return some values. This is because the application contains cache implementation to store the default values for the boxes. Defaults are: 250, 500, 1000, 2000, 5000.
 
-    If you run this calculation without submitting any values in the Pack Sizes field, you will notice that it will return some values. This is because the application contains cache implementation to store the default values for the boxes. Defaults are: 250, 500, 1000, 2000, 5000.
+There is a bdd folder under the /cmd directory which contains behavior tests. If you run "go test" command inside /cmd directory, it will bring up the application with docker-compose.yml and execute the Gherkin tests. 
 
-    There is a bdd folder under the /cmd directory which contains behavior tests. If you run "go test" command inside /cmd directory, it will bring up the application with docker-compose.yml and execute the Gherkin tests. 
+ 
 
