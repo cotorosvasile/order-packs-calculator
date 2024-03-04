@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Box Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #boxForm {
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+        #boxForm label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        #boxForm input[type="text"], #boxForm input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        #boxForm input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+        #boxForm input[type="submit"]:hover {
+            background-color: #444;
+        }
+        #result {
+            margin: 50px auto;
+            width: 300px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <form id="boxForm">
+        <label for="packSizes">Pack Sizes (comma-separated):</label>
+        <input type="text" id="packSizes" name="packSizes">
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity">
+        <input type="submit" value="Submit">
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('boxForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var packSizes = document.getElementById('packSizes').value.split(',').map(Number);
+            var quantity = parseInt(document.getElementById('quantity').value);
+    
+            fetch('http://localhost:8080/calculator/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    packSizes: packSizes,
+                    quantity: quantity,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                var resultText = 'Box Items: ';
+                for (var size in data.box_items) {
+                    resultText += 'Size ' + size + ': ' + data.box_items[size] + ', ';
+                }
+                document.getElementById('result').textContent = resultText;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
