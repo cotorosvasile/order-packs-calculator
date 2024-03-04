@@ -27,10 +27,6 @@ func (t *TestPackSizeCalculate) InitializeTest(ctx *godog.ScenarioContext) {
 		t.fContext.reset()
 		return nil, nil
 	})
-	ctx.After(func(_ context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		t.fContext.finish()
-		return nil, nil
-	})
 	ctx.Step(`^system API is up and running$`, t.systemAPIIsUpAndRunning)
 	ctx.Step(`^calculate POST request is send to "([^"]*)" with (\d+) in the request body$`, t.calculatePOSTRequestIsSendToWithInTheRequestBody)
 	ctx.Step(`^calculate POST request is send to "([^"]*)" with empty request body$`, t.calculatePOSTRequestIsSendToWithEmptyRequestBody)

@@ -30,6 +30,9 @@ func (c *calculatorService) CalculateBoxes(boxItemsRequest e.BoxItemsRequest) e.
 	sort.Sort(sort.Reverse(sort.IntSlice(boxItemsRequest.PackSizes))) // Sort items in descending order
 
 	for _, packSize := range boxItemsRequest.PackSizes {
+		if packSize == 0 {
+			continue
+		}
 		boxCount := boxItemsRequest.Quantity / packSize
 		boxItemsRequest.Quantity -= packSize * boxCount
 		result[packSize] = boxCount

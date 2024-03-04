@@ -44,6 +44,16 @@
             background-color: #fff;
             box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
         }
+        #result ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #result li {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -59,7 +69,8 @@
     <script>
         document.getElementById('boxForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            var packSizes = document.getElementById('packSizes').value.split(',').map(Number);
+            var packSizesInput = document.getElementById('packSizes').value;
+            var packSizes = packSizesInput ? packSizesInput.split(',').map(Number) : [];
             var quantity = parseInt(document.getElementById('quantity').value);
     
             fetch('http://localhost:8080/calculator/calculate', {
@@ -74,11 +85,12 @@
             })
             .then(response => response.json())
             .then(data => {
-                var resultText = 'Box Items: ';
+                var resultHTML = '<ul>';
                 for (var size in data.box_items) {
-                    resultText += 'Size ' + size + ': ' + data.box_items[size] + ', ';
+                    resultHTML += '<li><strong>Size ' + size + ':</strong> ' + data.box_items[size] + '</li>';
                 }
-                document.getElementById('result').textContent = resultText;
+                resultHTML += '</ul>';
+                document.getElementById('result').innerHTML = resultHTML;
             })
             .catch((error) => {
                 console.error('Error:', error);

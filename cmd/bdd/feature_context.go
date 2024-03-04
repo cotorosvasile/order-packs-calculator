@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os/exec"
 	"time"
 )
 
@@ -30,15 +29,6 @@ func (f *FeatureContext) reset() {
 	f.responseBody = nil
 	f.statusCode = 0
 	f.boxItemsResponse = boxItemsResponse{}
-}
-
-func (f *FeatureContext) finish() {
-	var cmd *exec.Cmd
-	ChdirIfInDirectory("../", "cmd")
-	cmd = exec.Command("docker", "compose", "down")
-	if err := cmd.Run(); err != nil {
-		log.Fatalf("failed to docker compose down: %s", err)
-	}
 }
 
 func (f *FeatureContext) sendRequest(method, endpoint string, data []byte) error {
