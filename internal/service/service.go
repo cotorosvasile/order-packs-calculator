@@ -1,6 +1,7 @@
 package service
 
 import (
+	"math"
 	cache "pack-items/internal/components/cache"
 	e "pack-items/internal/entity"
 	"sort"
@@ -27,22 +28,44 @@ func (c *calculatorService) CalculateBoxes(boxItemsRequest e.BoxItemsRequest) e.
 
 	result := make(map[int]int)
 
-	sort.Sort(sort.Reverse(sort.IntSlice(boxItemsRequest.PackSizes))) // Sort items in descending order
+	sort.Sort(sort.Reverse(sort.IntSlice(boxItemsRequest.PackSizes)))
 
-	for _, packSize := range boxItemsRequest.PackSizes {
-		if packSize == 0 {
-			continue
+	leastBoxes := math.MaxInt64
+	leastExtra := math.MaxInt64
+
+	c.calculateRecursivellyBoxes(0, 0, make(map[int]int), 0, &result, &leastBoxes, &leastExtra, boxItemsRequest)
+
+	return e.BoxItemsResponse{
+		BoxItems: result,
+	}
+}
+
+func (c *calculatorService) calculateRecursivellyBoxes(index, quantity int, packConfig map[int]int, currentBoxes int, result *map[int]int, leastBoxes *int, leastExtra *int, boxItemsRequest e.BoxItemsRequest) {
+	if quantity >= boxItemsRequest.Quantity {
+		extra := quantity - boxItemsRequest.Quantity
+		if extra < *leastExtra || (extra == *leastExtra && currentBoxes < *leastBoxes) {
+			*leastExtra = extra
+			*leastBoxes = currentBoxes
+			*result = copyMap(packConfig)
 		}
-		boxCount := boxItemsRequest.Quantity / packSize
-		boxItemsRequest.Quantity -= packSize * boxCount
-		result[packSize] = boxCount
+		return
 	}
 
-	// If there's any remaining quantity, pack it in the smallest available box
-	if boxItemsRequest.Quantity > 0 {
-		smallestBox := boxItemsRequest.PackSizes[len(boxItemsRequest.PackSizes)-1] // Smallest box size
-		result[smallestBox]++
+	if index == len(boxItemsRequest.PackSizes) {
+		return
 	}
 
-	return e.BoxItemsResponse{BoxItems: result}
+	c.calculateRecursivellyBoxes(index+1, quantity, packConfig, currentBoxes, result, leastBoxes, leastExtra, boxItemsRequest)
+
+	updatedPackConfig := copyMap(packConfig)
+	updatedPackConfig[boxItemsRequest.PackSizes[index]]++
+	c.calculateRecursivellyBoxes(index, quantity+boxItemsRequest.PackSizes[index], updatedPackConfig, currentBoxes+1, result, leastBoxes, leastExtra, boxItemsRequest)
+}
+
+func copyMap(original map[int]int) map[int]int {
+	copy := make(map[int]int)
+	for k, v := range original {
+		copy[k] = v
+	}
+	return copy
 }
