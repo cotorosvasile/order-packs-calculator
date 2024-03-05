@@ -16,28 +16,28 @@ func TestCalculateBoxes(t *testing.T) {
 	calculator := setup()
 	tests := []struct {
 		boxItemsRequest entity.BoxItemsRequest
-		expectedMap     map[int]int
+		expectedMap     entity.BoxItemsResponse
 	}{
 		{
 			boxItemsRequest: entity.BoxItemsRequest{
 				PackSizes: []int{250, 500, 1000, 2000, 5000},
 				Quantity:  25,
 			},
-			expectedMap: map[int]int{250: 1},
+			expectedMap: entity.BoxItemsResponse{BoxItems: map[int]int{250: 1, 500: 0, 1000: 0, 2000: 0, 5000: 0}},
 		},
 		{
 			boxItemsRequest: entity.BoxItemsRequest{
 				PackSizes: []int{250, 500, 1000, 2000, 5000},
 				Quantity:  12001,
 			},
-			expectedMap: map[int]int{5000: 2, 2000: 1, 250: 1},
+			expectedMap: entity.BoxItemsResponse{BoxItems: map[int]int{250: 1, 500: 0, 1000: 0, 2000: 1, 5000: 2}},
 		},
 		{
 			boxItemsRequest: entity.BoxItemsRequest{
 				PackSizes: []int{250, 500, 1000, 2000, 5000},
 				Quantity:  251,
 			},
-			expectedMap: map[int]int{250: 2},
+			expectedMap: entity.BoxItemsResponse{BoxItems: map[int]int{250: 2, 500: 0, 1000: 0, 2000: 0, 5000: 0}},
 		},
 	}
 
