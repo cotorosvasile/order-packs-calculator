@@ -15,7 +15,6 @@ type FeatureContext struct {
 	apiBasePath      string
 	responseBody     []byte
 	statusCode       int
-	packSizes        []int
 	boxItemsResponse boxItemsResponse
 }
 

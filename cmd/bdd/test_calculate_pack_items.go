@@ -2,10 +2,10 @@ package bdd
 
 import (
 	"context"
-	"fmt"
 	"strconv"
-	"strings"
 	"testing"
+
+	"encoding/json"
 
 	"github.com/cucumber/godog"
 )
@@ -28,10 +28,10 @@ func (t *TestPackSizeCalculate) InitializeTest(ctx *godog.ScenarioContext) {
 		return nil, nil
 	})
 	ctx.Step(`^system API is up and running$`, t.systemAPIIsUpAndRunning)
-	ctx.Step(`^calculate POST request is send to "([^"]*)" with (\d+) in the request body$`, t.calculatePOSTRequestIsSendToWithInTheRequestBody)
 	ctx.Step(`^calculate POST request is send to "([^"]*)" with empty request body$`, t.calculatePOSTRequestIsSendToWithEmptyRequestBody)
 	ctx.Step(`^the response code is (\d+)$`, t.theResponseCodeIs)
-	ctx.Step(`^the response body contains (\d+),(\d+),(\d+),(\d+),(\d+)$`, t.theResponseBodyContains)
+	ctx.Step(`^calculate POST request is send to "([^"]*)" with "([^"]*)" and (\d+) in the request body$`, t.calculatePOSTRequestIsSendToWithAndInTheRequestBody)
+	ctx.Step(`^the response body contains '(.*)'$`, t.theResponseBodyContains)
 }
 
 func (t *TestPackSizeCalculate) systemAPIIsUpAndRunning() error {
@@ -51,15 +51,8 @@ func (t *TestPackSizeCalculate) calculatePOSTRequestIsSendToWithEmptyRequestBody
 	}
 	return nil
 }
-
-func (t *TestPackSizeCalculate) calculatePOSTRequestIsSendToWithInTheRequestBody(path string, itemsQty int) error {
-	var boxItemsRequest []byte
-	if len(t.fContext.packSizes) > 0 {
-		boxItemsRequest = []byte(`{"quantity": ` + strconv.Itoa(itemsQty) + `, "packSizes": [` + fmt.Sprintf("%v", t.fContext.packSizes) + `]}`)
-	} else {
-		boxItemsRequest = []byte(`{"quantity": ` + strconv.Itoa(itemsQty) + `}`)
-
-	}
+func (t *TestPackSizeCalculate) calculatePOSTRequestIsSendToWithAndInTheRequestBody(path, packSizes string, itemsQty int) error {
+	boxItemsRequest := []byte(`{"quantity": ` + strconv.Itoa(itemsQty) + `, "packSizes": ` + packSizes + `}`)
 	if err := t.fContext.sendRequest("POST", path, boxItemsRequest); err != nil {
 		t.testingT.Fatalf("Error sending request: %v", err)
 	}
@@ -74,40 +67,29 @@ func (t *TestPackSizeCalculate) theResponseCodeIs(responseCode int) error {
 	return nil
 }
 
-func (t *TestPackSizeCalculate) theResponseBodyContains(arg1, arg2, arg3, arg4, arg5 int) error {
-	expected := map[int]int{
-		250:  arg1,
-		500:  arg2,
-		1000: arg3,
-		2000: arg4,
-		5000: arg5,
+func (t *TestPackSizeCalculate) theResponseBodyContains(packConfig string) error {
+
+	var expectedBoxItemsResponse boxItemsResponse
+
+	err := json.Unmarshal([]byte(packConfig), &expectedBoxItemsResponse)
+	if err != nil {
+		t.testingT.Fatalf("Error unmarshalling response: %v", err)
 	}
-	if err := checkBoxItemResponse(t.fContext.boxItemsResponse, expected); err != nil {
-		t.testingT.Fatalf("Error checking response: %v", err)
+
+	expectedJSON, err := json.Marshal(expectedBoxItemsResponse)
+	if err != nil {
+		t.testingT.Fatalf("Error marshalling expected response: %v", err)
+	}
+
+	actualJSON, err := json.Marshal(t.fContext.boxItemsResponse)
+	if err != nil {
+		t.testingT.Fatalf("Error marshalling actual response: %v", err)
+	}
+
+	if string(actualJSON) != string(expectedJSON) {
+		t.testingT.Fatalf("Expected response %s, but got %s", string(expectedJSON), string(actualJSON))
 	}
 
 	return nil
 
-}
-
-func (t *TestPackSizeCalculate) customPackSizesAreSetTo(packSizes string) error {
-	ps := strings.Split(packSizes, ",")
-	for i, s := range ps {
-		t.fContext.packSizes[i], _ = strconv.Atoi(s)
-	}
-
-	return nil
-}
-
-func (t *TestPackSizeCalculate) theResponseBodyHas(arg1 string) error {
-	return godog.ErrPending
-}
-
-func checkBoxItemResponse(response boxItemsResponse, expected map[int]int) error {
-	for k, v := range expected {
-		if response.BoxItems[k] != v {
-			return fmt.Errorf("expected %d pack to be %d, but got %d", k, v, response.BoxItems[k])
-		}
-	}
-	return nil
 }

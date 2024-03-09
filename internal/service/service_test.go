@@ -39,6 +39,13 @@ func TestCalculateBoxes(t *testing.T) {
 			},
 			expectedMap: entity.BoxItemsResponse{BoxItems: map[int]int{500: 1}},
 		},
+		{
+			boxItemsRequest: entity.BoxItemsRequest{
+				PackSizes: []int{5, 12},
+				Quantity:  14,
+			},
+			expectedMap: entity.BoxItemsResponse{BoxItems: map[int]int{5: 3}},
+		},
 	}
 
 	for _, test := range tests {
